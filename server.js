@@ -20,7 +20,7 @@ app.use((req, res, next) => {
 });
 
 // File upload handling (commented out for Vercel)
-// app.use('/uploadImages', express.static('uploadImages'));
+ app.use('/uploadImages', express.static('uploadImages'));
 
 // Routes
 app.use('/auth', router);
