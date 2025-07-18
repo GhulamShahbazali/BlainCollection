@@ -6,24 +6,32 @@ const newImage=require('../MiddleWare/uploadImageMiddleWare');
 const  router = require('express').Router()
 
 
-router.post('/regestierNewUser' ,newImage.single('userImage'),async (req , res)=>{
-    
-    const  {userName,userPhone,userAddress,userEmail,userPassword}=req.body;
+router.post('/regestierNewUser', newImage.single('userImage'), async (req, res) => {
+  const { userName, userPhone, userAddress, userEmail, userPassword } = req.body;
 
-    const imagePath = req.file ? `http://localhost:9000/uploadImages/${req.file.filename}` : "";
+  const imagePath = req.file ? req.file.path : "";
 
-    let user = await User.findOne({ userEmail });
-    if(user){
-        return res.status(403).json({message:"user already exist",email:"this "+userEmail})
-    }else{
-        user = new User({userName,userPhone,userAddress,userEmail,userPassword,userImage:imagePath});
-        await user.save();
-        
-        return res.status(200).json({message:"user sucessfully added",response:await User.find()});
+  let user = await User.findOne({ userEmail });
+  if (user) {
+    return res.status(403).json({ message: "user already exists", email: "This " + userEmail });
+  } else {
+    user = new User({
+      userName,
+      userPhone,
+      userAddress,
+      userEmail,
+      userPassword,
+      userImage: imagePath, // ✅ Cloudinary URL
+    });
+    await user.save();
 
-    }
+    return res.status(200).json({
+      message: "User successfully added",
+      response: await User.find(),
+    });
+  }
+});
 
-})
 
 
 router.get('/another-route' , (req , res)=>{
