@@ -1,45 +1,55 @@
+require('dotenv').config(); // This must be the FIRST line
 const express = require('express');
 const database = require('./database');
 const router = require('./Routes/routers');
 const mongoose = require('mongoose');
-require('dotenv').config();
+
 const app = express();
 
-// Initialize database connection
-database();
+// Verify critical environment variables exist
+if (!process.env.MONGODB_URI) {
+  console.error('FATAL: MONGODB_URI not defined');
+  process.exit(1);
+}
 
-// Middleware for parsing JSON
+// Initialize database
+database().catch(err => {
+  console.error('Database connection failed:', err);
+  process.exit(1);
+});
+
+// Middleware
 app.use(express.json({ limit: '10mb' }));
+app.use(express.urlencoded({ extended: true }));
 
-// Enable CORS (adjust origins as needed)
+// CORS
 app.use((req, res, next) => {
   res.header('Access-Control-Allow-Origin', '*');
   res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE');
-  res.header('Access-Control-Allow-Headers', 'Content-Type');
+  res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization');
   next();
 });
-
-// File upload handling (commented out for Vercel)
-// app.use('/uploadImages', express.static('uploadImages'));
 
 // Routes
 app.use('/auth', router);
 
-// Basic health check endpoint
+// Health check
 app.get('/health', (req, res) => {
   const dbStatus = mongoose.connection.readyState === 1 ? 'connected' : 'disconnected';
-  res.json({ status: 'running', db: dbStatus });
-});
-
-// Root endpoint
-app.get('/', (req, res) => {
-  res.send('Server is up and running!');
+  res.json({ 
+    status: 'running',
+    db: dbStatus,
+    environment: process.env.NODE_ENV || 'development'
+  });
 });
 
 // Error handling
 app.use((err, req, res, next) => {
-  console.error(err);
-  res.status(500).json({ error: 'Internal Server Error y dhko '+err.message });
+  console.error('Server error:', err);
+  res.status(500).json({ 
+    error: 'Internal Server Error',
+    message: process.env.NODE_ENV === 'production' ? undefined : err.message
+  });
 });
 
 module.exports = app;
