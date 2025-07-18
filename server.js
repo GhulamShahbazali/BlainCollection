@@ -12,8 +12,6 @@ app.use('/auth',router);
 app.get('/', (req, res) => {
   res.send('Server is up and running!');
 });
-// app.listen(9000,()=>{
-//     console.log('server is runing on port 4000')
-// })
-
-module.exports=app;
+app.listen(9000,()=>{
+    console.log('server is runing on port 4000')
+})
