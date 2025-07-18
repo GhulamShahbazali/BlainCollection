@@ -2,7 +2,7 @@ const express = require('express');
 const database = require('./database');
 const router = require('./Routes/routers');
 const mongoose = require('mongoose');
-
+require('dotenv').config();
 const app = express();
 
 // Initialize database connection
@@ -20,7 +20,7 @@ app.use((req, res, next) => {
 });
 
 // File upload handling (commented out for Vercel)
- app.use('/uploadImages', express.static('uploadImages'));
+// app.use('/uploadImages', express.static('uploadImages'));
 
 // Routes
 app.use('/auth', router);
