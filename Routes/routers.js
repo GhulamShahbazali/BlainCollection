@@ -10,7 +10,7 @@ router.post('/regestierNewUser' ,newImage.single('userImage'),async (req , res)=
     
     const  {userName,userPhone,userAddress,userEmail,userPassword}=req.body;
 
-    const imagePath = req.file ? `mongodb+srv://shahbazamanat93:chand12345@cluster0.icyzsis.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0/uploadImages/${req.file.filename}` : "";
+    const imagePath = req.file ? `http://localhost:9000/uploadImages/${req.file.filename}` : "";
 
     let user = await User.findOne({ userEmail });
     if(user){
