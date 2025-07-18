@@ -1,69 +1,45 @@
 const express = require('express');
 const database = require('./database');
 const router = require('./Routes/routers');
-const path = require('path');
-const cors = require('cors');
-const bodyParser = require('body-parser');
+const mongoose = require('mongoose');
 
-// Initialize express app
 const app = express();
 
-// Configure CORS for production and development
-const corsOptions = {
-  origin: [
-    'https://blain-collection.vercel.app',
-    'http://localhost:9000'
-  ],
-  methods: ['GET', 'POST', 'PUT', 'DELETE'],
-  allowedHeaders: ['Content-Type', 'Authorization']
-};
-app.use(cors(corsOptions));
-
-// Enhanced body parsing
-app.use(bodyParser.json({ limit: '10mb' }));
-app.use(bodyParser.urlencoded({ extended: true, limit: '10mb' }));
-
 // Initialize database connection
-database().catch(err => {
-  console.error('Database connection error:', err);
-  process.exit(1);
+database();
+
+// Middleware for parsing JSON
+app.use(express.json({ limit: '10mb' }));
+
+// Enable CORS (adjust origins as needed)
+app.use((req, res, next) => {
+  res.header('Access-Control-Allow-Origin', '*');
+  res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE');
+  res.header('Access-Control-Allow-Headers', 'Content-Type');
+  next();
 });
 
-// File upload handling - remove this for Vercel deployment
+// File upload handling (commented out for Vercel)
 // app.use('/uploadImages', express.static('uploadImages'));
 
 // Routes
 app.use('/auth', router);
 
-// Health check endpoint
+// Basic health check endpoint
 app.get('/health', (req, res) => {
-  res.status(200).json({ 
-    status: 'healthy',
-    database: mongoose.connection.readyState === 1 ? 'connected' : 'disconnected'
-  });
+  const dbStatus = mongoose.connection.readyState === 1 ? 'connected' : 'disconnected';
+  res.json({ status: 'running', db: dbStatus });
 });
 
 // Root endpoint
 app.get('/', (req, res) => {
-  res.json({
-    message: 'Server is up and running!',
-    environment: process.env.NODE_ENV || 'development',
-    timestamp: new Date().toISOString()
-  });
+  res.send('Server is up and running!');
 });
 
-// Error handling middleware
+// Error handling
 app.use((err, req, res, next) => {
-  console.error('Server error:', err.stack);
-  res.status(500).json({
-    error: 'Internal Server Error',
-    message: process.env.NODE_ENV === 'production' ? undefined : err.message
-  });
-});
-
-// Handle 404
-app.use((req, res) => {
-  res.status(404).json({ error: 'Endpoint not found' });
+  console.error(err);
+  res.status(500).json({ error: 'Internal Server Error' });
 });
 
 module.exports = app;
