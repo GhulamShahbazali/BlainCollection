@@ -10,34 +10,28 @@ router.post('/registerNewUser', newImage.single('userImage'), async (req, res) =
   try {
     const { userName, userPhone, userAddress, userEmail, userPassword } = req.body;
 
-    // Check if image was uploaded
     if (!req.file) {
       return res.status(400).json({ error: 'Please upload an image' });
     }
 
-    // Check if user exists
     const existingUser = await User.findOne({ userEmail });
     if (existingUser) {
       return res.status(409).json({ error: 'Email already in use' });
     }
-
-    // Hash password
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(userPassword, salt);
 
-    // Create new user with Cloudinary URL
     const newUser = new User({
       userName,
       userPhone,
       userAddress,
       userEmail,
       userPassword: hashedPassword,
-      userImage: req.file.path // This will now be the Cloudinary URL
+      userImage: req.file.path 
     });
 
     await newUser.save();
 
-    // Return success response
     return res.status(201).json({
       message: "User registered successfully",
       user: {
